@@ -1,14 +1,13 @@
-// app/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCart } from "@/components/CartContext";
+import { useCart, Product } from "@/components/CartContext";
 import { ShoppingCart, DollarSign } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { cart, addToCart, removeFromCart } = useCart();
 
@@ -17,10 +16,12 @@ export default function Home() {
       const res = await fetch("https://fakestoreapi.com/products?limit=12");
       const data = await res.json();
 
-      // Tambahkan properti kuota stok untuk tiap item
-      const dataWithStock = data.map((item: any) => ({
-        ...item,
-        stock: Math.floor(Math.random() * 5) + 1, // stok antara 1-5
+      const dataWithStock: Product[] = data.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        price: item.price,
+        image: item.image,
+        stock: Math.floor(Math.random() * 5) + 1,
       }));
 
       setProducts(dataWithStock);
