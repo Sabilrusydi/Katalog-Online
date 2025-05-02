@@ -1,10 +1,13 @@
+// app/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useCart, Product } from "@/components/CartContext";
+import { useCart } from "@/components/CartContext";
 import { ShoppingCart, DollarSign } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { Product } from "@/components/CartContext";
+
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -12,21 +15,19 @@ export default function Home() {
   const { cart, addToCart, removeFromCart } = useCart();
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const res = await fetch("https://fakestoreapi.com/products?limit=12");
-      const data = await res.json();
+      const fetchProducts = async () => {
+        const res = await fetch("https://fakestoreapi.com/products?limit=12");
+        const data: Product[] = await res.json();
 
-      const dataWithStock: Product[] = data.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        price: item.price,
-        image: item.image,
-        stock: Math.floor(Math.random() * 5) + 1,
-      }));
+        // Tambahkan properti kuota stok untuk tiap item
+        const dataWithStock: Product[] = data.map((item) => ({
+          ...item,
+          stock: Math.floor(Math.random() * 5) + 1, // stok antara 1-5
+        }));
 
-      setProducts(dataWithStock);
-      setLoading(false);
-    };
+        setProducts(dataWithStock);
+        setLoading(false);
+      };
 
     fetchProducts();
   }, []);
@@ -73,7 +74,7 @@ export default function Home() {
 
               <button
                 onClick={() =>
-                  isInCart ? removeFromCart(product.id) : addToCart({ ...product, quantity: 1 })
+                  isInCart ? removeFromCart(product.id) : addToCart(product)
                 }
                 disabled={product.stock === 0}
                 className={`mt-auto px-4 py-2 rounded-lg font-semibold transition-all ${
