@@ -1,103 +1,94 @@
+// app/page.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+import { useCart } from "@/components/CartContext";
+import { ShoppingCart, DollarSign } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { cart, addToCart, removeFromCart } = useCart();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const res = await fetch("https://fakestoreapi.com/products?limit=12");
+      const data = await res.json();
+
+      // Tambahkan properti kuota stok untuk tiap item
+      const dataWithStock = data.map((item: any) => ({
+        ...item,
+        stock: Math.floor(Math.random() * 5) + 1, // stok antara 1-5
+      }));
+
+      setProducts(dataWithStock);
+      setLoading(false);
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) return <p className="text-center text-white mt-10">Memuat data...</p>;
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-sky-400 to-indigo-600 p-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-4xl font-bold text-white">Simple Katalog Online</h1>
+        <Link href="/cart">
+          <div className="relative cursor-pointer text-white">
+            <ShoppingCart size={32} />
+            {cart.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-xs text-white rounded-full px-2">
+                {cart.length}
+              </span>
+            )}
+          </div>
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {products.map((product) => {
+          const isInCart = cart.find((item) => item.id === product.id);
+          return (
+            <div
+              key={product.id}
+              className="bg-white rounded-2xl shadow-lg p-4 flex flex-col justify-between hover:scale-105 transition-transform"
+            >
+              <Image
+                src={product.image}
+                alt={product.title}
+                width={300}
+                height={300}
+                className="object-contain h-48 w-full mb-4"
+              />
+              <h2 className="font-semibold text-lg text-gray-800 mb-2">{product.title}</h2>
+              <p className="flex items-center text-indigo-600 font-bold mb-2">
+                <DollarSign className="w-4 h-4 mr-1" />
+                {product.price}
+              </p>
+              <p className="text-sm text-gray-500 mb-2">Stok tersedia: {product.stock}</p>
+
+              <button
+                onClick={() =>
+                  isInCart ? removeFromCart(product.id) : addToCart({ ...product, quantity: 1 })
+                }
+                disabled={product.stock === 0}
+                className={`mt-auto px-4 py-2 rounded-lg font-semibold transition-all ${
+                  isInCart
+                    ? "bg-red-500 text-white hover:bg-red-600"
+                    : product.stock === 0
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-indigo-500 text-white hover:bg-indigo-600"
+                }`}
+              >
+                {product.stock === 0 ? "Stok Habis" : isInCart ? "Remove from Cart" : "Add to Cart"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </main>
   );
 }
